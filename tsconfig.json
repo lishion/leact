@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "jsx": "react",
+      "outDir": "./dist/",
+      "noImplicitAny": true,
+      "module": "es6",
+      "target": "es2017",
+      "jsxFactory": "Leact.createElement",
+      "allowJs": true,
+      "moduleResolution": "node"
+    }
+}

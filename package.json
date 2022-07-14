@@ -1,0 +1,31 @@
+{
+  "name": "leact",
+  "version": "1.0.0",
+  "description": "react lite",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack serve --open --config webpack.config.js"
+  },
+  "author": "l1n3x",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.18.6",
+    "@babel/preset-env": "^7.18.6",
+    "babel-loader": "^8.2.5",
+    "install": "^0.13.0",
+    "npm": "^8.13.2",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.73.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3"
+  },
+  "dependencies": {
+    "@babel/preset-react": "^7.18.6",
+    "@babel/preset-typescript": "^7.18.6",
+    "babel-jest": "^28.1.2",
+    "html-webpack-plugin": "^5.5.0",
+    "jest-environment-jsdom": "^28.1.2"
+  }
+}
