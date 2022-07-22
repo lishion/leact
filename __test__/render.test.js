@@ -275,6 +275,9 @@ testWithJSOMEnv('test-bailout', () => {
   
   function ShouldOnlyRenderOnce(){
     ref.count += 1
+    Leact.useLayoutEffect(() => {
+      ref.count += 2
+    }, [])
     return <div>ssss</div>
   }
 
@@ -301,5 +304,6 @@ testWithJSOMEnv('test-bailout', () => {
   btn.click()
   btn.click()
   btn.click()
-  expect(ref.count).toBe(1)
+  // useEffect and render for ShouldOnlyRenderOnce should only execute once
+  expect(ref.count).toBe(3)
 })

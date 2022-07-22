@@ -281,6 +281,11 @@ function commitEffectImpl(isLayout: boolean, wip: Fiber){
     let node = wip
     while(node !== null){
         callEffect(node.effects.filter(effect => effect.isLayout === isLayout))
+        // clear already finished effect
+        node.effects = node.effects.filter(effect => effect.isLayout !== isLayout)
+        if(!isLayout){
+            node.effects = []
+        }
         if(node.child !== null){
             node = node.child
         }else if(node.sibling !== null){
