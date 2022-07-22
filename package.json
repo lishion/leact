@@ -1,6 +1,6 @@
 {
   "name": "@l1n3x/leact",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "a tiny react-like js framework",
   "main": "./lib/leact.min.js",
   "scripts": {
