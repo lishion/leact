@@ -1,7 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 module.exports = {
-    entry: './src/index.jsx',
+    entry: './index.jsx',
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'main.bundle.js',
@@ -44,5 +44,5 @@ module.exports = {
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
       },
-    plugins: [new HtmlWebpackPlugin({template: './src/main.html'})],
+    plugins: [new HtmlWebpackPlugin({template: './main.html'})],
 };
