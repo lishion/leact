@@ -1,54 +1,80 @@
-import { Fiber, HostComponent, HostText, LeactElement, NoFlags, Placement, RootFiber, UpdateText } from "./types"
+import { HostText, Placement, RootFiber } from "./types"
 import { Differ, diffProps } from './diff'
-import { createDOMElementFromFiber, patchDiffProps } from './dom'
-import {setCurrentFiber} from './hook'
+import { setCurrentFiber, callEffect, destoryEffect } from './hook'
+import { Fiber, HostFiber, HostComponentFiber, LeactElement } from './fiber'
 
 
-type WorkContext = {
+type workLoopContext = {
     current: Fiber | null,
-    wip: Fiber | null
+}
+
+function receiverUpdate(fiber: Fiber): boolean{
+    return fiber.previousProps !== fiber.props || fiber.hasUpdate || fiber.alternate === null
+}
+
+function cloneChildren(fiber: Fiber){
+    let child = fiber.alternate.child
+    let firstChild: Fiber = null
+    let lastChild: Fiber = null 
+    while(child !== null){
+        const nextChild = child.createWorkinProgress(child.props)
+        if(firstChild === null){
+            firstChild = lastChild = nextChild
+        }else{
+            lastChild = lastChild.sibling = nextChild
+        }
+        child = child.sibling
+    }
+    fiber.child = firstChild
 }
 
 function beginWork(wip: Fiber): Fiber | null {
+    if(wip.elementType === HostText){
+        return null
+    }
+    
+    if(!receiverUpdate(wip)){
+        if(!wip.childrenHaveUpdate){
+            return null
+        }else{
+            cloneChildren(wip)
+            return wip.child
+        }
+    }
+    
     const differ = new Differ(wip)
+    let existFirstChild = wip.alternate === null ? null : wip.alternate.child
+    let newChild = null;
     if (typeof (wip.type) === 'function') { // 函数组件
         setCurrentFiber(wip)
-        const child = wip.type(wip.props)
-        let nextFiber = null;
-        console.info('wip', wip, wip.alternate)
-        let existFirstChild = wip.alternate === null ? null : wip.alternate.child
-        if (Array.isArray(child)) {
-            nextFiber = differ.diffChildren(child, existFirstChild)
-        } else {
-            nextFiber = differ.diffChild(child as LeactElement, existFirstChild)
-        }
-        wip.child = nextFiber
-        console.info('nextFiber', nextFiber)
-        return nextFiber
+        const maybeNewChild = wip.type(wip.props)
+        newChild = Array.isArray(maybeNewChild) 
+                        ? maybeNewChild.map(LeactElement.of)
+                        : LeactElement.of(maybeNewChild)
     } else {
-        const child = wip.props.children
-        if (wip.typeOf === HostText) {
-            return null
-        }
-        let existFirstChild = wip.alternate === null ? null : wip.alternate.child
-        let nextFiber = null;
-        if (Array.isArray(child)) {
-            nextFiber = differ.diffChildren(child, existFirstChild)
-        } else {
-            nextFiber = differ.diffChild(child as LeactElement, existFirstChild)
-        }
-        wip.child = nextFiber
-        return nextFiber
+        newChild = wip.props.child
     }
+    let nextFiber = null;
+    if (Array.isArray(newChild)) {
+        nextFiber = differ.diffChildren(newChild, existFirstChild)
+    } else {
+        nextFiber = differ.diffChild(LeactElement.of(newChild), existFirstChild)
+    }
+    wip.child = nextFiber
+    wip.hasUpdate = false
+    return nextFiber
 }
 
 
-function getFirstLayerDOM(wip: Fiber): Fiber[] {
+function getFirstLayerDOM(wip: Fiber): HostFiber[] {
+    if(!wip.child){
+        return []
+    }
     let node = wip.child
-    const elements: Fiber[] = []
+    const elements: HostFiber[] = []
     while (true) {
         // 如果找到了第一层子节点
-        if (node.typeOf === HostComponent || node.typeOf === HostText) {
+        if (node instanceof HostFiber) {
             elements.push(node)
             if(node.sibling !== null){
                 node = node.sibling
@@ -81,17 +107,16 @@ function getFirstLayerDOM(wip: Fiber): Fiber[] {
 
 
 function completeEachFiber(wip: Fiber) {
-    if (wip.typeOf === HostComponent || wip.typeOf === HostText) {
+    if (wip instanceof HostFiber) {
         // 如果这是一个新增 dom 节点，需要将第一层子节点插入到当前节点下
         if (wip.alternate === null) {
-            wip.container = createDOMElementFromFiber(wip)
-            if(wip.typeOf === HostText){
-                return
+            wip.getDom()
+            if(wip instanceof HostComponentFiber && wip.child !== null){
+                getFirstLayerDOM(wip).forEach(hostFiber => {
+                    wip.appendChild(hostFiber)
+                    hostFiber.removeFlag(Placement) // 只保留子树 root 节点的 placement
+                })
             }
-            getFirstLayerDOM(wip).forEach(hostFiber => {
-                wip.container.appendChild(hostFiber.container)
-                hostFiber.flags &= ~Placement // 只保留子树 root 节点的 placement
-            })
         } else {
             const current = wip.alternate
             const patchProps = diffProps(current, wip)
@@ -100,6 +125,7 @@ function completeEachFiber(wip: Fiber) {
             }
         }
     }
+    wip.childrenHaveUpdate = false
 }
 
 function completeWork(wip: Fiber): Fiber | null {
@@ -127,18 +153,57 @@ function workLoop(wip: Fiber) {
         while (workInProgress !== null) {
             last = workInProgress
             workInProgress = beginWork(workInProgress)
+            last.previousProps = last.props
         }
         workInProgress = completeWork(last)
     }
 }
 
-function getSibling(node: Fiber): Fiber | null{
-    let workNode = node;
-    while(true){
-        if(workNode !== node && workNode.typeOf === HostText){
-            return workNode;
+function findNextSibling(node: Fiber){
+    let workNode = node
+    if(workNode.sibling !== null){
+        return workNode.sibling
+    }
+    while(node.sibling === null){
+        workNode = workNode.parent
+        if(workNode === null){
+            return null
         }
-        if (workNode !== node && workNode.child !== null){
+    }
+    return node.sibling
+}
+
+function findHostSibling(node: Fiber): HostFiber | null {
+    let fiber = node;
+    while(true){
+        if(fiber.hasFlag(Placement)){
+            fiber = findNextSibling(fiber)
+            if(fiber === null){
+                return null
+            }
+        }else if(fiber instanceof HostFiber){
+            return fiber;
+        }else if (fiber.child !== null){
+            fiber = fiber.child;
+        }else{
+            fiber = findNextSibling(fiber)
+            if(fiber === null){
+                return null
+            }
+        }
+    }
+}
+
+
+function commitDelete(node: Fiber){
+    let workNode = node
+    while(true){
+        if(workNode instanceof HostFiber){
+            workNode.removeDom()
+        }else {
+            destoryEffect(workNode.effectHook.next)
+        }
+        if (workNode.child !== null){
             workNode = workNode.child;
         }
         else if(workNode.sibling !== null){
@@ -146,10 +211,9 @@ function getSibling(node: Fiber): Fiber | null{
         }else{
             while(true){
                 workNode = workNode.parent;
-                if(workNode === null){
-                    return null;
-                }
-                else if(workNode.sibling !== null){
+                if(workNode === null || workNode === node){
+                    return;
+                }else if(workNode.sibling !== null){
                     workNode = workNode.sibling;
                     break;
                 }
@@ -158,44 +222,51 @@ function getSibling(node: Fiber): Fiber | null{
     }
 }
 
+function findParent(fiber: Fiber){
+    let parent = fiber.parent
+    while(parent !== null){
+        if(parent instanceof HostComponentFiber){
+            return parent
+        }
+        parent = parent.parent
+    }
+    throw Error("no parent found, should be a bug")
+}
 
 function commit(wip: Fiber){
-    let hostComponent = null
     let node = wip
     while(true){
-        if(node.typeOf === HostComponent){
-            if(node.patchProps){
-                patchDiffProps(node)
-            }
-            console.info(node, (node.flags & Placement) != NoFlags)
-            if((node.flags & Placement) != NoFlags){
-                if(hostComponent === null){
-                    throw new Error('parent host is null')
+        if(node instanceof HostFiber){
+            if(node instanceof HostComponentFiber && node.hasFlag(Placement)){
+                const hostComponent = findParent(node)
+                const sibling = findHostSibling(node)
+                if(sibling === null){
+                    hostComponent.appendChild(node)
+                }else{
+                    hostComponent.insertBefore(node, sibling)
                 }
-               const sibling = getSibling(node)
-               if(sibling === null){
-                hostComponent.container.appendChild(node.container)
-               }else{
-                hostComponent.container.insertBefore(node.container, sibling.container)
-               }
+                node.removeFlag(Placement)
+            }else if(!node.hasFlag(Placement)){
+                node.patchDom()
             }
         }
-        else if(node.typeOf === HostText){
-            if((node.flags & UpdateText) != NoFlags){
-                (node.container as Text).data = node.props
-            }
-        }
-        
-        if(node.typeOf === HostComponent || node.typeOf === RootFiber){
-            hostComponent = node
-        }
-
         if(node.child !== null){
             node = node.child
         }else if(node.sibling !== null){
             node = node.sibling
         }else{
             while(node.sibling === null){
+                if(node.deleteions && node.deleteions.length > 0){
+                    node.deleteions.forEach(needDeleteFiber => {
+                        commitDelete(needDeleteFiber)
+                        needDeleteFiber.clean()
+                    })
+                    // remove 
+                    if(node.alternate){
+                        node.alternate.child = null
+                    }
+                }
+                node.deleteions = []
                 node = node.parent
                 if(node === null){
                     return
@@ -206,4 +277,54 @@ function commit(wip: Fiber){
     }
 }
 
-export { workLoop, commit}
+function commitEffectImpl(isLayout: boolean, wip: Fiber){
+    let node = wip
+    while(node !== null){
+        callEffect(node.effects.filter(effect => effect.isLayout === isLayout))
+        if(node.child !== null){
+            node = node.child
+        }else if(node.sibling !== null){
+            node = node.sibling
+        }else{
+            node = findNextSibling(node)
+        }
+    }
+}
+
+const commitEffect = commitEffectImpl.bind(null, false)
+const commitLayoutEffect = commitEffectImpl.bind(null, true)
+
+const workLoopContext: workLoopContext = {
+    current: null
+}
+
+function createWIPRootFiber(): Fiber{
+    const rootFiber = workLoopContext.current.alternate === null ? 
+        workLoopContext.current.createWorkinProgress(workLoopContext.current.props)
+        : workLoopContext.current.alternate
+    // no update for rootFiber
+    rootFiber.hasUpdate = false
+    // the children should have update if the workloop going to launch
+    rootFiber.childrenHaveUpdate = true
+    return rootFiber
+}
+
+function startWorkloop(){
+    const wipRootFiber = createWIPRootFiber()
+    workLoop(wipRootFiber)
+    commit(wipRootFiber)
+    commitLayoutEffect(wipRootFiber)
+    setTimeout(commitEffect.bind(null, wipRootFiber), 0)
+    workLoopContext.current = wipRootFiber
+}
+
+function render(dom: Element, leactElement: LeactElement){
+    const rootFiber = new HostComponentFiber()
+    rootFiber.elementType |= RootFiber
+    rootFiber.container = dom
+    rootFiber.props = {child: leactElement}
+    workLoopContext.current = rootFiber
+    startWorkloop()
+}
+
+export { workLoop, commit, commitEffect, startWorkloop, render }

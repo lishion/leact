@@ -1,13 +1,11 @@
 import {
-    Fiber, 
-    LeactElement, 
     Placement, 
     Delete, 
     ChildDelete, 
     HostText,
     UpdateText,
 } from './types'
-import {createEmptyFiber, createFiberFromElement, createWorkInProgress} from './fiber'
+import {LeactElement, HostComponentFiber, HostTextFiber, Fiber} from './fiber'
 
 
 
@@ -25,6 +23,7 @@ class Differ{
         this.parent.flags |= ChildDelete
         this.parent.deleteions.push(currentFiber)
     }
+
     markRemainsDelete(fiber: Fiber){
         let current  = fiber
         while(current !== null){
@@ -32,6 +31,13 @@ class Differ{
             current = current.sibling
         }
     }
+    
+    placeNewChild(child: LeactElement){
+        const newChild = Fiber.fromElement(child).addFlag(Placement)
+        newChild.parent = this.parent
+        return newChild
+    }
+
     diffChild(newChild: LeactElement | null, firstCurrentFiber: Fiber): Fiber|null{
         // 如果本次 wip 为空，则需要删除所有的 current 
         if(newChild === null){
@@ -41,55 +47,21 @@ class Differ{
         
         // 首次渲染
         if(firstCurrentFiber === null){
-            const fiber = createFiberFromElement(newChild)
-            fiber.flags |= Placement
-            fiber.parent = this.parent
-            return fiber
+            return this.placeNewChild(newChild)
         }
-
-        if(newChild.type === null){
-            if(firstCurrentFiber.typeOf !== HostText){
-                this.markRemainsDelete(firstCurrentFiber)
-                const fiber = createEmptyFiber()
-                fiber.typeOf = HostText
-                fiber.flags |= Placement
-                fiber.props = newChild.props.value
-                fiber.parent = this.parent
-                return fiber
-            }else{
-                const fiber = createWorkInProgress(firstCurrentFiber, newChild.toString())
-                fiber.typeOf = HostText
-                fiber.flags |= Placement
-                this.markRemainsDelete(firstCurrentFiber.sibling)
-                fiber.parent = this.parent
-                return fiber
-            }
-        }
-    
         let current = firstCurrentFiber;
-        let wip = null;
-        let newKey = newChild.props.key || null
         while(current !== null){
-            // 如果 type 和 key 都相同，则可以复用
-            if(current.type === newChild.type && current.key === newKey){
-                wip = createWorkInProgress(current, newChild.props)
-            }
-            // 否则删除无法复用的 current 
-            else{
+            // 如果 type 和 key 都相同，则可以复用m
+            if(newChild.isSameType(current) && newChild.key === current.key){
+                return current.createWorkinProgress(newChild.props)
+            }else{ 
+                // 否则删除无法复用的 current 
                 this.markDelete(current)
             }
             current = current.sibling
         }
-        // 如果找到可以复用的则直接返回
-        if(wip !== null){
-            wip.parent = this.parent
-            return wip
-        }
         // 否则创建一个新的
-        const fiber = createFiberFromElement(newChild)
-        fiber.flags |= Placement
-        fiber.parent = this.parent
-        return fiber
+        return this.placeNewChild(newChild)
     }
     
     getKeyFiberMap(fiber: Fiber): Map<string|number, [Fiber, number]>{
@@ -97,24 +69,23 @@ class Differ{
         let keyIndexMap = new Map<string|number, [Fiber, number]>()
         let index = 0;
         while(current !== null){
-            keyIndexMap.set(current.key || index, [current, index]);
-            index += 1
+            keyIndexMap.set(current.key || index, [current, index])
             current = current.sibling
+            index += 1
         }
         return keyIndexMap
     }
     
     diffChildren(newChildren: (LeactElement|null)[], firstCurrentFiber: Fiber): Fiber | null{
-        const keyIndexMap = this.getKeyFiberMap(firstCurrentFiber)
         let baseIndex = 0
         let lastNewFiber: Fiber | null = null
         let firstNewFiber = lastNewFiber
-
         // 如果本次 wip 为空，则需要删除所有的 current 
         if(newChildren === null || newChildren.length === 0){
             this.markRemainsDelete(firstCurrentFiber)
             return null
         }
+        const keyIndexMap = this.getKeyFiberMap(firstCurrentFiber)
         for(let index = 0; index < newChildren.length; index++){
             const child = newChildren[index]
             if(child === null){
@@ -124,36 +95,20 @@ class Differ{
             let newFiber = null
             if(keyIndexMap.has(newKey)){
                 const [oldFiber, oldIndex] = keyIndexMap.get(newKey)
-                const oldKey = oldFiber.key || oldIndex
-                if(child.type === null){
-                    if(oldFiber.typeOf === HostText){
-                        newFiber = createWorkInProgress(oldFiber, child.props.value)
-                        if(child.props.value !== oldFiber.props){
-                            newFiber.flags |= UpdateText
-                        }
-                    }else{
-                        this.markDelete(oldFiber)
-                        newFiber = createEmptyFiber()
-                        newFiber.typeOf = HostText
-                        newFiber.props = child.props.value
-                        newFiber.flags |= Placement
-                    }
-                }else if(oldFiber.type !== child.type){
-                    this.markDelete(oldFiber)
-                    newFiber = createFiberFromElement(child)
-                    newFiber.flags |= Placement
+                if(child.isSameType(oldFiber)){
+                    newFiber = oldFiber.createWorkinProgress(child.props)
                 }else{
-                    newFiber = createWorkInProgress(oldFiber, child.props)
+                    this.markDelete(oldFiber)
+                    newFiber = Fiber.fromElement(child).addFlag(Placement)
                 }
                 if(oldIndex < baseIndex){
-                    newFiber.flags |= Placement
+                    newFiber.addFlag(Placement)
                 }else{
                     baseIndex = oldIndex
                 }
                 keyIndexMap.delete(newKey)
             }else{
-                newFiber = createFiberFromElement(child)
-                newFiber.flags |= Placement
+                newFiber = Fiber.fromElement(child).addFlag(Placement)
             }
             if(lastNewFiber !== null){
                 lastNewFiber.sibling = newFiber
@@ -163,26 +118,39 @@ class Differ{
             }
             newFiber.parent = this.parent
         }
+        // remove the link of last fiber otherwise there may be a cycle
+        lastNewFiber.sibling = null 
         keyIndexMap.forEach(([fiber, _]) => this.markDelete(fiber))
         return firstNewFiber
     }
 }
 
-
-function diffProps(current: Fiber, wip: Fiber){
+function diffObject(wip: any, current: any): any {
     const diffRes: {[key: string]: any} = {} 
-    const oldProps = current.props
-    const newProps = wip.props
-    
-    for(const [k, v] of Object.entries(newProps)){
+    for(let [k, v] of Object.entries(wip)){
         if(k === "key" || k === "children"){
             continue
         }
-        if(oldProps[k] !== v){
+        if(k === "style"){
+            diffRes["style"] = diffObject(wip.style, current.style || {}) 
+        }
+        else if(current[k] !== v){
             diffRes[k as string] = v
+        }
+    }
+    for(let [k, _] of Object.entries(current)){
+        if(!wip.hasOwnProperty(k)){
+            diffRes[k] = null
         }
     }
     return diffRes
 }
 
-export {Differ, diffProps}
+
+function diffProps(current: Fiber, wip: Fiber){
+    const oldProps = current.props
+    const newProps = wip.props
+    return diffObject(newProps, oldProps)
+}
+
+export {Differ, diffProps, diffObject}
