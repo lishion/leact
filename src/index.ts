@@ -1,1 +1,2 @@
-export * as default from './leact'
+import Leact from './leact'
+export default Leact

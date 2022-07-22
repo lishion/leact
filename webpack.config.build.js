@@ -2,7 +2,7 @@ const path = require('path');
 module.exports = {
     entry: './src/index.ts',
     output: {
-        path: path.resolve(__dirname, './build'), 
+        path: path.resolve(__dirname, './lib'), 
         filename: 'leact.min.js', 
         libraryTarget: 'umd', 
         library: 'leact', 

@@ -1,6 +1,6 @@
 {
   "name": "@l1n3x/leact",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "a tiny react-like js framework",
   "main": "./lib/leact.min.js",
   "scripts": {
@@ -10,7 +10,7 @@
   },
   "author": "l1n3x",
   "license": "MIT",
-  "files": ["src", "build", "package.json", "readme.md"],
+  "files": ["src", "lib", "package.json", "readme.md"],
   "devDependencies": {
     "@babel/core": "^7.18.6",
     "@babel/preset-env": "^7.18.6",
