@@ -10,5 +10,5 @@ export default {
     useEffect,
     useLayoutEffect,
     createFragment,
-    Fragment
+    Fragment,
 }

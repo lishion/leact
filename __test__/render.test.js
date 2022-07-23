@@ -41,18 +41,18 @@ testWithJSOMEnv('test-render', () => {
             </>
     }
 
-    Leact.render(document.getElementById("root"), <StateTestComponent/>)
-    const div1 = document.getElementById("id1")
-    const div2 = document.getElementById("id2")
-    const div3 = document.getElementById("id3")
+    Leact.render(document.getElementById('root'), <StateTestComponent/>)
+    const div1 = document.getElementById('id1')
+    const div2 = document.getElementById('id2')
+    const div3 = document.getElementById('id3')
 
     expect(div1).not.toBeNull()
     expect(div2).not.toBeNull()
     expect(div3).not.toBeNull()
-    expect(document.getElementById("1d4")).not.toBeNull()
-    expect(document.getElementById("1d5")).not.toBeNull()
-    expect(Array.from(div2.childNodes)[0].data).toBe("hello")
-    expect(Array.from(div3.childNodes)[0].data).toBe("world")
+    expect(document.getElementById('1d4')).not.toBeNull()
+    expect(document.getElementById('1d5')).not.toBeNull()
+    expect(Array.from(div2.childNodes)[0].data).toBe('hello')
+    expect(Array.from(div3.childNodes)[0].data).toBe('world')
 })
 
 
@@ -74,26 +74,26 @@ testWithJSOMEnv('test-add-sub-tree', () => {
         </div>
     }
 
-    Leact.render(document.getElementById("root"), <StateTestComponent/>)
-    const div1 = document.getElementById("id1")
+    Leact.render(document.getElementById('root'), <StateTestComponent/>)
+    const div1 = document.getElementById('id1')
     div1.click()
 
-    const div2 = document.getElementById("id2")
-    const div3 = document.getElementById("id3")
+    const div2 = document.getElementById('id2')
+    const div3 = document.getElementById('id3')
 
     expect(div1).not.toBeNull()
     expect(div2).not.toBeNull()
     expect(div3).not.toBeNull()
 
-    expect(Array.from(div2.childNodes)[0].data).toBe("hello")
-    expect(Array.from(div3.childNodes)[0].data).toBe("world")
+    expect(Array.from(div2.childNodes)[0].data).toBe('hello')
+    expect(Array.from(div3.childNodes)[0].data).toBe('world')
 })
 
 testWithJSOMEnv('test-add', () => {
   function StateTestComponent() {
-    const [state, setState] = Leact.useState(["d"])
+    const [state, setState] = Leact.useState(['d'])
     return <div id="wrapper">
-      <div id="id1" onClick={() => setState(["d", "c", "b", "a"])}>hello</div>
+      <div id="id1" onClick={() => setState(['d', 'c', 'b', 'a'])}>hello</div>
       {
         state.map(key => <div id={key} key={key}>{key}</div>)
       }
@@ -104,42 +104,42 @@ testWithJSOMEnv('test-add', () => {
     </div>
   }
 
-  Leact.render(document.getElementById("root"), <StateTestComponent/>)
-  document.getElementById("id1").click()
-  const keys = Array.from(document.getElementById("wrapper").childNodes)
+  Leact.render(document.getElementById('root'), <StateTestComponent/>)
+  document.getElementById('id1').click()
+  const keys = Array.from(document.getElementById('wrapper').childNodes)
               .filter(node => node.childNodes.length > 0)
               .map(node => node.childNodes[0].data)
-  expect(keys).toStrictEqual(["hello", "d", "c", "b", "a"])
+  expect(keys).toStrictEqual(['hello', 'd', 'c', 'b', 'a'])
 })
 
 
 testWithJSOMEnv('test-switch', () => {
   function StateTestComponent() {
-    const [state, setState] = Leact.useState(["a", "b", "c", "d"])
+    const [state, setState] = Leact.useState(['a', 'b', 'c', 'd'])
     return <div id="wrapper">
-      <div id="id1" onClick={() => setState(["d", "c", "b", "a"])}>hello</div>
+      <div id="id1" onClick={() => setState(['d', 'c', 'b', 'a'])}>hello</div>
       {
         state.map(key => <div id={key} key={key}>{key}</div>)
       }
     </div>
   }
 
-  Leact.render(document.getElementById("root"), <StateTestComponent />)
-  const div1 = document.getElementById("id1")
-  let keys = Array.from(document.getElementById("wrapper").childNodes).map(node => node.childNodes[0].data)
-  expect(keys).toStrictEqual(["hello", "a", "b", "c", "d"])
+  Leact.render(document.getElementById('root'), <StateTestComponent />)
+  const div1 = document.getElementById('id1')
+  let keys = Array.from(document.getElementById('wrapper').childNodes).map(node => node.childNodes[0].data)
+  expect(keys).toStrictEqual(['hello', 'a', 'b', 'c', 'd'])
   div1.click()
-  keys = Array.from(document.getElementById("wrapper").childNodes).map(node => node.childNodes[0].data)
-  expect(keys).toStrictEqual(["hello", "d", "c", "b", "a"])
+  keys = Array.from(document.getElementById('wrapper').childNodes).map(node => node.childNodes[0].data)
+  expect(keys).toStrictEqual(['hello', 'd', 'c', 'b', 'a'])
 })
 
 testWithJSOMEnv('test-delete', () => {
   function StateTestComponent() {
-    const [state, setState] = Leact.useState(["a", "b", "c", "d"])
+    const [state, setState] = Leact.useState(['a', 'b', 'c', 'd'])
     return <div id="wrapper">
       <div id="id1"
         onClick={() => {
-          setState(["v", "a", "e", "d", "x"])
+          setState(['v', 'a', 'e', 'd', 'x'])
         }}
       >
           hello
@@ -150,20 +150,20 @@ testWithJSOMEnv('test-delete', () => {
     </div>
   }
 
-  Leact.render(document.getElementById("root"), <StateTestComponent />)
-  const div1 = document.getElementById("id1")
-  let keys = Array.from(document.getElementById("wrapper").childNodes).map(node => node.childNodes[0].data)
-  expect(keys).toStrictEqual(["hello", "a", "b", "c", "d"])
+  Leact.render(document.getElementById('root'), <StateTestComponent />)
+  const div1 = document.getElementById('id1')
+  let keys = Array.from(document.getElementById('wrapper').childNodes).map(node => node.childNodes[0].data)
+  expect(keys).toStrictEqual(['hello', 'a', 'b', 'c', 'd'])
   div1.click()
-  keys = Array.from(document.getElementById("wrapper").childNodes).map(node => node.childNodes[0].data)
-  expect(keys).toStrictEqual(["hello", "v", "a", "e", "d", "x"])
-  expect(document.getElementById("b")).toBeNull()
-  expect(document.getElementById("c")).toBeNull()
+  keys = Array.from(document.getElementById('wrapper').childNodes).map(node => node.childNodes[0].data)
+  expect(keys).toStrictEqual(['hello', 'v', 'a', 'e', 'd', 'x'])
+  expect(document.getElementById('b')).toBeNull()
+  expect(document.getElementById('c')).toBeNull()
 })
 
 
 testWithJSOMEnv('test-delete-multi-times', () => {
-  const initState = ["a", "b", "c", "d"]
+  const initState = ['a', 'b', 'c', 'd']
   function StateTestComponent() {
     const [state, setState] = Leact.useState(initState)
     return <div id="wrapper">
@@ -181,11 +181,11 @@ testWithJSOMEnv('test-delete-multi-times', () => {
     </div>
   }
 
-  Leact.render(document.getElementById("root"), <StateTestComponent />)
-  const div1 = document.getElementById("id1")
+  Leact.render(document.getElementById('root'), <StateTestComponent />)
+  const div1 = document.getElementById('id1')
   for(let i = 0; i < initState.length; i++){
-    const keys = Array.from(document.getElementById("wrapper").childNodes).map(node => node.childNodes[0].data)
-    expect(keys).toStrictEqual(["hello", ...initState])
+    const keys = Array.from(document.getElementById('wrapper').childNodes).map(node => node.childNodes[0].data)
+    expect(keys).toStrictEqual(['hello', ...initState])
     initState.pop()
     div1.click()
   }
@@ -194,8 +194,8 @@ testWithJSOMEnv('test-delete-multi-times', () => {
 
 
 testWithJSOMEnv('test-destory', () => {
-  const initState = ["a", "b", "c", "d"]
-  let ref = {count: 1};
+  const initState = ['a', 'b', 'c', 'd']
+  let ref = {count: 1}
   function EffectTestComponent(){
     Leact.useEffect(() => {
       ref.count += 2
@@ -218,10 +218,10 @@ testWithJSOMEnv('test-destory', () => {
     </>
   }
 
-  Leact.render(document.getElementById("root"), <StateTestComponent />)
+  Leact.render(document.getElementById('root'), <StateTestComponent />)
   expect(ref.count).toBe(1)
-  document.getElementById("id1").click()
-  expect(document.getElementById("id2")).toBeNull()
+  document.getElementById('id1').click()
+  expect(document.getElementById('id2')).toBeNull()
 })
 
 testWithJSOMEnv('test-layout-effect-and-ref', () => {
@@ -234,7 +234,7 @@ testWithJSOMEnv('test-layout-effect-and-ref', () => {
     })
     return <p ref={ref} id="id2"></p>
   }
-  Leact.render(document.getElementById("root"), <EffectTestComponent />)
+  Leact.render(document.getElementById('root'), <EffectTestComponent />)
   expect(count).toBe(1)
 })
 
@@ -249,7 +249,7 @@ testWithJSOMEnv('test-layout-effect-and-ref', () => {
     })
     return <p ref={ref} id="id2"></p>
   }
-  Leact.render(document.getElementById("root"), <EffectTestComponent />)
+  Leact.render(document.getElementById('root'), <EffectTestComponent />)
   expect(count).toBe(1)
 })
 
@@ -264,7 +264,7 @@ testWithJSOMEnv('test-layout-effect-and-ref', () => {
     })
     return <p ref={ref} id="id2"></p>
   }
-  Leact.render(document.getElementById("root"), <EffectTestComponent />)
+  Leact.render(document.getElementById('root'), <EffectTestComponent />)
   expect(count).toBe(1)
 })
 
@@ -299,8 +299,8 @@ testWithJSOMEnv('test-bailout', () => {
       </>
     )
   }
-  Leact.render(document.getElementById("root"), <EffectTestComponent />)
-  const btn = document.getElementById("btn")
+  Leact.render(document.getElementById('root'), <EffectTestComponent />)
+  const btn = document.getElementById('btn')
   btn.click()
   btn.click()
   btn.click()

@@ -19,14 +19,14 @@ test('test use state', () => {
         </>
     }
 
-    const root = document.createElement("div")
-    root.id = "root"
-    document.body = document.createElement("body");
+    const root = document.createElement('div')
+    root.id = 'root'
+    document.body = document.createElement('body')
     document.body.appendChild(root)
-    Leact.render(document.getElementById("root"), <StateTestComponent/>)
+    Leact.render(document.getElementById('root'), <StateTestComponent/>)
 
-    const btn1 = document.getElementById("btn1")
-    const btn2 = document.getElementById("btn2")
+    const btn1 = document.getElementById('btn1')
+    const btn2 = document.getElementById('btn2')
     btn1.click()
     btn1.click()
     btn1.click()
@@ -34,5 +34,5 @@ test('test use state', () => {
     btn2.click()
     btn2.click()
 
-    document.getElementById("btn3").click()
+    document.getElementById('btn3').click()
 })

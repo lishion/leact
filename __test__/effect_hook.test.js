@@ -1,4 +1,4 @@
-import {useEffect, setCurrentFiber, callEffect, destoryEffect, useState, useLayoutEffect} from '../src/hook'
+import {useEffect, setCurrentFiber, callEffect, destroyEffect, useState, useLayoutEffect} from '../src/hook'
 import {Fiber} from '../src/fiber'
 
 function EffectMockComponent(count1, count2, count3, arg){
@@ -54,7 +54,7 @@ test('test use effect', () => {
     mockLoop(1)
     mockLoop(2)
 
-    destoryEffect(fiber.effectHook.next)
+    destroyEffect(fiber.effectHook.next)
     expect(count1.current).toBe(2)
     expect(count2.current).toBe(1)
     expect(count3.current).toBe(3)
@@ -80,7 +80,7 @@ test('test use layout effect', () => {
     mockLoop(1)
     mockLoop(2)
 
-    destoryEffect(fiber.effectHook.next)
+    destroyEffect(fiber.effectHook.next)
     expect(count1.current).toBe(2)
     expect(count2.current).toBe(1)
     expect(count3.current).toBe(3)

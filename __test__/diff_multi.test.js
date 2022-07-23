@@ -1,7 +1,7 @@
 import {Differ, diffObject} from '../src/diff'
 import leact from '../src/leact'
 import {Fiber} from '../src/fiber'
-import {Placement, NoFlags, Delete, UpdateText} from '../src/types'
+import {Placement, NoFlags, Delete} from '../src/types'
 
 function createElements(array){
     return array.map(([name, key, props]) => leact.createElement(name, {key: key, ...(props || {})}))
@@ -40,16 +40,16 @@ function diff(oldElementsRepr, newElementsRepr){
 
 test('test diff multi child with same type', () => {
     const oldElementsRepr = [
-        ["p", "a"],
-        ["p", "b"],
-        ["p", "c"],
-        ["p", "d"]
+        ['p', 'a'],
+        ['p', 'b'],
+        ['p', 'c'],
+        ['p', 'd'],
     ]
     const newElementsRepr = [
-        ["p", "d"],
-        ["p", "c"],
-        ["p", "b"],
-        ["p", "a"],
+        ['p', 'd'],
+        ['p', 'c'],
+        ['p', 'b'],
+        ['p', 'a'],
     ]
     const res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
@@ -63,15 +63,15 @@ test('test diff multi child with same type', () => {
 
 test('test append', () => {
     const oldElementsRepr = [
-        ["p", null],
-        ["p", null],
-        ["p", null]
+        ['p', null],
+        ['p', null],
+        ['p', null],
     ]
     const newElementsRepr = [
-        ["p", null],
-        ["p", null],
-        ["p", null],
-        ["p", null]
+        ['p', null],
+        ['p', null],
+        ['p', null],
+        ['p', null],
     ]
     const res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
@@ -85,14 +85,14 @@ test('test append', () => {
 
 test('test diff multi child with diff type', () => {
     const oldElementsRepr = [
-        ["p", "a"],
-        ["div", "b"],
-        ["p", "c"]
+        ['p', 'a'],
+        ['div', 'b'],
+        ['p', 'c'],
     ]
     const newElementsRepr = [
-        ["p", "a"],
-        ["p", "b"],
-        ["p", "c"]
+        ['p', 'a'],
+        ['p', 'b'],
+        ['p', 'c'],
     ]
     const res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
@@ -101,22 +101,22 @@ test('test diff multi child with diff type', () => {
         ['p', 'c', false],
     ])
     expect(collectFibers(res.oldFiber, Delete)).toStrictEqual([
-        ["p", "a", false],
-        ["div", "b", true],
-        ["p", "c", false],
+        ['p', 'a', false],
+        ['div', 'b', true],
+        ['p', 'c', false],
     ])
 })
 
 test('test no key', () => {
     const oldElementsRepr = [
-        ["a", null],
-        ["p", null],
-        ["div", null]
+        ['a', null],
+        ['p', null],
+        ['div', null],
     ]
     const newElementsRepr = [
-        ["a", null],
-        ["p", null],
-        ["div", null]
+        ['a', null],
+        ['p', null],
+        ['div', null],
     ]
     const res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
@@ -128,14 +128,14 @@ test('test no key', () => {
 
 test('test no key with type change', () => {
     const oldElementsRepr = [
-        ["a", null],
-        ["p", null],
-        ["div", null]
+        ['a', null],
+        ['p', null],
+        ['div', null],
     ]
     const newElementsRepr = [
-        ["a", null],
-        ["p", null],
-        ["div", null]
+        ['a', null],
+        ['p', null],
+        ['div', null],
     ]
     const res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
@@ -148,9 +148,9 @@ test('test no key with type change', () => {
 
 test('test delete', () => {
     let oldElementsRepr = [
-        ["a", null],
-        ["p", null],
-        ["div", null]
+        ['a', null],
+        ['p', null],
+        ['div', null],
     ]
     let newElementsRepr = [
     ]
@@ -162,13 +162,13 @@ test('test delete', () => {
     ])
 
     oldElementsRepr = [
-        ["a", null],
-        ["p", null],
-        ["div", null]
+        ['a', null],
+        ['p', null],
+        ['div', null],
     ]
     newElementsRepr = [
-        ["a", null],
-        ["div", null]
+        ['a', null],
+        ['div', null],
     ]
     res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.oldFiber, Delete)).toStrictEqual([
@@ -178,48 +178,48 @@ test('test delete', () => {
     ])
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
         ['a', null, false],
-        ['div', null, true]
+        ['div', null, true],
     ])
 
     oldElementsRepr = [
-        ["a", "1"],
-        ["p", "2"],
-        ["div", "3"]
+        ['a', '1'],
+        ['p', '2'],
+        ['div', '3'],
     ]
     newElementsRepr = [
-        ["a", "1"],
-        ["p", "2"]
+        ['a', '1'],
+        ['p', '2'],
     ]
     res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.oldFiber, Delete)).toStrictEqual([
-        ['a', "1", false],
-        ['p', "2", false],
-        ['div', "3", true],
+        ['a', '1', false],
+        ['p', '2', false],
+        ['div', '3', true],
     ])
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
-        ['a', "1", false],
-        ['p', "2", false]
+        ['a', '1', false],
+        ['p', '2', false],
     ])
 
 
     oldElementsRepr = [
-        ["a", "1"],
-        ["p", "2"],
-        ["div", "3"]
+        ['a', '1'],
+        ['p', '2'],
+        ['div', '3'],
     ]
     newElementsRepr = [
-        ["a", "1"],
-        ["div", "3"]
+        ['a', '1'],
+        ['div', '3'],
     ]
     res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.oldFiber, Delete)).toStrictEqual([
-        ['a', "1", false],
-        ['p', "2", true],
-        ['div', "3", false],
+        ['a', '1', false],
+        ['p', '2', true],
+        ['div', '3', false],
     ])
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
-        ['a', "1", false],
-        ['div', "3", false]
+        ['a', '1', false],
+        ['div', '3', false],
     ])
 })
 
@@ -268,33 +268,33 @@ test('test delete', () => {
 
 test('test insert', () => {
     let oldElementsRepr = [
-        ["p", "1"],
-        ["p", "2"],
-        ["div", "3"]
+        ['p', '1'],
+        ['p', '2'],
+        ['div', '3'],
     ]
     let newElementsRepr = [
-        ["p", "1"],
-        ["p", "4"],
-        ["p", "2"],
-        ["div", "3"]
+        ['p', '1'],
+        ['p', '4'],
+        ['p', '2'],
+        ['div', '3'],
     ]
     let res = diff(oldElementsRepr, newElementsRepr, Placement)
     expect(collectFibers(res.newFiber, Placement)).toStrictEqual([
-        ["p", "1", false],
-        ["p", "4", true],
-        ["p", "2", false],
-        ["div", "3", false]
+        ['p', '1', false],
+        ['p', '4', true],
+        ['p', '2', false],
+        ['div', '3', false],
     ])
 })
 
-test("diff props", () => {
-    const newProps = {a: 1, b: 2, c:3, key: 1, child: 2, style: {color: "red", border: 1, fontSize: 1}}
-    const oldProps = {x: 1, a: 2, c:3, key: 1, child: 2, style: {fontFamily: "aaa", color: "blank", fontSize: 1}}
+test('diff props', () => {
+    const newProps = {a: 1, b: 2, c:3, key: 1, child: 2, style: {color: 'red', border: 1, fontSize: 1}}
+    const oldProps = {x: 1, a: 2, c:3, key: 1, child: 2, style: {fontFamily: 'aaa', color: 'blank', fontSize: 1}}
     const diffRes = diffObject(newProps, oldProps)
     expect(diffRes).toStrictEqual({
         a: 1,
         b: 2,
         x: null,
-        style: {color: "red", border: 1, fontFamily: null}
+        style: {color: 'red', border: 1, fontFamily: null},
     })
 })

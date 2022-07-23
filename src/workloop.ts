@@ -1,6 +1,6 @@
-import { HostText, Placement, RootFiber } from "./types"
+import { HostText, Placement, RootFiber } from './types'
 import { Differ, diffProps } from './diff'
-import { setCurrentFiber, callEffect, destoryEffect } from './hook'
+import { setCurrentFiber, callEffect, destroyEffect } from './hook'
 import { Fiber, HostFiber, HostComponentFiber, LeactElement } from './fiber'
 
 
@@ -17,7 +17,7 @@ function cloneChildren(fiber: Fiber){
     let firstChild: Fiber = null
     let lastChild: Fiber = null 
     while(child !== null){
-        const nextChild = child.createWorkinProgress(child.props)
+        const nextChild = child.createWorkInProgress(child.props)
         if(firstChild === null){
             firstChild = lastChild = nextChild
         }else{
@@ -43,8 +43,8 @@ function beginWork(wip: Fiber): Fiber | null {
     }
     
     const differ = new Differ(wip)
-    let existFirstChild = wip.alternate === null ? null : wip.alternate.child
-    let newChild = null;
+    const existFirstChild = wip.alternate === null ? null : wip.alternate.child
+    let newChild = null
     if (typeof (wip.type) === 'function') { // 函数组件
         setCurrentFiber(wip)
         const maybeNewChild = wip.type(wip.props)
@@ -54,7 +54,7 @@ function beginWork(wip: Fiber): Fiber | null {
     } else {
         newChild = wip.props.child
     }
-    let nextFiber = null;
+    let nextFiber = null
     if (Array.isArray(newChild)) {
         nextFiber = differ.diffChildren(newChild, existFirstChild)
     } else {
@@ -133,7 +133,7 @@ function completeWork(wip: Fiber): Fiber | null {
         completeEachFiber(wip)
         return wip.sibling
     }
-    let node = wip;
+    let node = wip
     while (node.sibling === null) {
         completeEachFiber(node)
         node = node.parent
@@ -174,7 +174,7 @@ function findNextSibling(node: Fiber){
 }
 
 function findHostSibling(node: Fiber): HostFiber | null {
-    let fiber = node;
+    let fiber = node
     while(true){
         if(fiber.hasFlag(Placement)){
             fiber = findNextSibling(fiber)
@@ -182,9 +182,9 @@ function findHostSibling(node: Fiber): HostFiber | null {
                 return null
             }
         }else if(fiber instanceof HostFiber){
-            return fiber;
+            return fiber
         }else if (fiber.child !== null){
-            fiber = fiber.child;
+            fiber = fiber.child
         }else{
             fiber = findNextSibling(fiber)
             if(fiber === null){
@@ -201,21 +201,21 @@ function commitDelete(node: Fiber){
         if(workNode instanceof HostFiber){
             workNode.removeDom()
         }else {
-            destoryEffect(workNode.effectHook.next)
+            destroyEffect(workNode.effectHook.next)
         }
         if (workNode.child !== null){
-            workNode = workNode.child;
+            workNode = workNode.child
         }
         else if(workNode.sibling !== null){
-            workNode = workNode.sibling;
+            workNode = workNode.sibling
         }else{
             while(true){
-                workNode = workNode.parent;
+                workNode = workNode.parent
                 if(workNode === null || workNode === node){
-                    return;
+                    return
                 }else if(workNode.sibling !== null){
-                    workNode = workNode.sibling;
-                    break;
+                    workNode = workNode.sibling
+                    break
                 }
             }
         }
@@ -230,7 +230,7 @@ function findParent(fiber: Fiber){
         }
         parent = parent.parent
     }
-    throw Error("no parent found, should be a bug")
+    throw Error('no parent found, should be a bug')
 }
 
 function commit(wip: Fiber){
@@ -256,8 +256,8 @@ function commit(wip: Fiber){
             node = node.sibling
         }else{
             while(node.sibling === null){
-                if(node.deleteions && node.deleteions.length > 0){
-                    node.deleteions.forEach(needDeleteFiber => {
+                if(node.deletions && node.deletions.length > 0){
+                    node.deletions.forEach(needDeleteFiber => {
                         commitDelete(needDeleteFiber)
                         needDeleteFiber.clean()
                     })
@@ -266,7 +266,7 @@ function commit(wip: Fiber){
                         node.alternate.child = null
                     }
                 }
-                node.deleteions = []
+                node.deletions = []
                 node = node.parent
                 if(node === null){
                     return
@@ -300,21 +300,21 @@ const commitEffect = commitEffectImpl.bind(null, false)
 const commitLayoutEffect = commitEffectImpl.bind(null, true)
 
 const workLoopContext: workLoopContext = {
-    current: null
+    current: null,
 }
 
 function createWIPRootFiber(): Fiber{
     const rootFiber = workLoopContext.current.alternate === null ? 
-        workLoopContext.current.createWorkinProgress(workLoopContext.current.props)
+        workLoopContext.current.createWorkInProgress(workLoopContext.current.props)
         : workLoopContext.current.alternate
     // no update for rootFiber
     rootFiber.hasUpdate = false
-    // the children should have update if the workloop going to launch
+    // the children should have works if the work loop going to launch
     rootFiber.childrenHaveUpdate = true
     return rootFiber
 }
 
-function startWorkloop(){
+function startWorkLoop(){
     const wipRootFiber = createWIPRootFiber()
     workLoop(wipRootFiber)
     commit(wipRootFiber)
@@ -329,7 +329,7 @@ function render(dom: Element, leactElement: LeactElement){
     rootFiber.container = dom
     rootFiber.props = {child: leactElement}
     workLoopContext.current = rootFiber
-    startWorkloop()
+    startWorkLoop()
 }
 
-export { workLoop, commit, commitEffect, startWorkloop, render }
+export { workLoop, commit, commitEffect, startWorkLoop, render }

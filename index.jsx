@@ -37,7 +37,7 @@ import Leact from './src/leact'
 // }
 
 function randomInt(start, max) {
-    return start + Math.floor(Math.random() * (max - start));
+    return start + Math.floor(Math.random() * (max - start))
 }
   
 
@@ -46,14 +46,14 @@ class Snake{
         left: 1,
         right: -1,
         up: 2,
-        down: -2
+        down: -2,
     }
     constructor(firstX, firstY, maxWidht, maxHeight){
         this.body = [[firstX, firstY]]
         this.maxWidht = maxWidht
         this.maxHeight = maxHeight
         this.food = []
-        this.direction = "left"
+        this.direction = 'left'
     }
 
     setDirection(direction){
@@ -71,7 +71,7 @@ class Snake{
     initSnake(){
         let [nextX, nextY] = this.body[0]
         for(let i = 0; i < 3; i++){
-            [nextX, nextY] = this.getNextNodePosition(nextX, nextY, "right")
+            [nextX, nextY] = this.getNextNodePosition(nextX, nextY, 'right')
             this.body.push([nextX, nextY])
         }
         this.randomFood()
@@ -81,16 +81,16 @@ class Snake{
         let nextX = x
         let nextY = y
         switch(position){
-            case "left": nextX = nextX - 1 ; break
-            case "right": nextX = nextX + 1; break
-            case "up": nextY = nextY - 1; break
-            case "down": nextY = nextY + 1; break
-            default: console.info("error position")
+            case 'left': nextX = nextX - 1 ; break
+            case 'right': nextX = nextX + 1; break
+            case 'up': nextY = nextY - 1; break
+            case 'down': nextY = nextY + 1; break
+            default: console.info('error position')
         }
         return [nextX, nextY]
     }
 
-    moveForwad(direction){
+    moveForward(direction){
         let [headX, headY] = this.body[0]
         const [nextX, nextY] = this.getNextNodePosition(headX, headY, direction)
         if(nextX < 0 || nextY < 0){
@@ -135,7 +135,7 @@ class Snake{
             return this.moveBack(direction)
         }
         this.setDirection(direction)
-        return this.moveForwad(direction)
+        return this.moveForward(direction)
     }
 
     allNodes(){
@@ -147,36 +147,37 @@ const snake = new Snake(10, 10, 20, 20)
 snake.initSnake()
 snake.food = [5, 10]
 function SnakeComponent(){
-    const directionRef = Leact.useRef("left")
+    const directionRef = Leact.useRef('left')
     const nodesRef = Leact.useRef(snake.allNodes())
     const [noUse, setNoUse] = Leact.useState({})
-    const [status, setStatus] = Leact.useState("live")
+    const [status, setStatus] = Leact.useState('live')
     Leact.useEffect(() => {
+        console.info('effect')
         document.addEventListener('keydown', (e) => {
             let direction = null
             switch(e.key){
-                case "ArrowUp": direction = "up"; break
-                case "ArrowDown": direction = "down"; break
-                case "ArrowLeft": direction = "left"; break
-                case "ArrowRight": direction = "right"; break
+                case 'ArrowUp': direction = 'up'; break
+                case 'ArrowDown': direction = 'down'; break
+                case 'ArrowLeft': direction = 'left'; break
+                case 'ArrowRight': direction = 'right'; break
                 default: break
             }
             if(direction !== null){
                 directionRef.current = direction
             }
         })  
-        if(status === "dead"){
+        if(status === 'dead'){
             return
         }
         const timer = setInterval(() => {
             const live = snake.move(directionRef.current)
             if(!live){
-                setStatus("dead")
+                setStatus('dead')
                 clearInterval(timer)
             }
             nodesRef.current = snake.allNodes()
             setNoUse({})
-        }, 300)
+        }, 100)
     }, [])
 
     return (
@@ -185,24 +186,24 @@ function SnakeComponent(){
             justifyContent: 'center',
             onKeyDown: (e) => {
                 console.info(e)
-            }
+            },
        }}>
             <div>
                 <button onClick={() => {
-                    directionRef.current = "up"
-                    console.info("go to left")
+                    directionRef.current = 'up'
+                    console.info('go to left')
                 }}> up </button>
                 <button onClick={() => {
-                    directionRef.current = "down"
-                    console.info("go to down")
+                    directionRef.current = 'down'
+                    console.info('go to down')
                 }}> down </button>
                 <button onClick={() => {
-                    directionRef.current = "left"
-                    console.info("go to left")
+                    directionRef.current = 'left'
+                    console.info('go to left')
                 }}> left </button>
                 <button onClick={() => {
-                    directionRef.current = "right"
-                    console.info("go to right")
+                    directionRef.current = 'right'
+                    console.info('go to right')
                 }}> right </button>
             </div>
             <div style={{
@@ -218,9 +219,9 @@ function SnakeComponent(){
                                 position: 'absolute',
                                 left: `${x * 30}px`,
                                 top: `${y * 30}px`,
-                                width: `30px`,
-                                height: `30px`,
-                                background: 'black'
+                                width: '30px',
+                                height: '30px',
+                                background: 'black',
                             }}
                         />
                     })
@@ -230,4 +231,4 @@ function SnakeComponent(){
     )
 }
 
-Leact.render(document.getElementById("root"), <SnakeComponent/>)
+Leact.render(document.getElementById('root'), <SnakeComponent/>)

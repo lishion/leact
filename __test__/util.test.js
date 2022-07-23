@@ -1,7 +1,7 @@
-import { flattern } from "../src/utils";
+import { flatten } from '../src/utils'
 
-test('flattern', () => {
+test('flatten', () => {
     const input = [1, 2, [3, [4, [5]]], [6], 7]
     const output = [1, 2, 3, 4, 5, 6, 7]
-    expect(flattern(input)).toStrictEqual(output)
+    expect(flatten(input)).toStrictEqual(output)
 })

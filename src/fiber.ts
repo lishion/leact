@@ -1,4 +1,5 @@
-import { StateHook, 
+import {
+    StateHook,
     EffectHook, 
     TagName, 
     Component, 
@@ -7,9 +8,10 @@ import { StateHook,
     HostText, 
     FunctionComponent, 
     NoFlags, 
-    FragmentComponent} from "./types";
+    FragmentComponent,
+} from './types'
 
-import { flattern } from './utils'
+import { flatten } from './utils'
 
 class LeactElement {
     public key: string|number|null
@@ -55,19 +57,16 @@ class LeactElement {
 
 }
 
+type ElementChild = LeactElement|string|number|null|boolean
 
-function createElement(type: string | Function, props: any, ...child: (LeactElement|string|number|null)[]): LeactElement{
+function createElement(type: string | ((...args: any) => ElementChild), props: any, ...child: ElementChild[]): LeactElement{
     if(Array.isArray(child)){
-        child = flattern(child)
+        child = flatten(child)
     }
     const children = Array.isArray(child) ? child.map(LeactElement.of) : LeactElement.of(child)
-    let elementType = typeof type === 'function' ? FunctionComponent: HostComponent;
+    const elementType = typeof type === 'function' ? FunctionComponent: HostComponent
     return new LeactElement(elementType, type, props, children)
 }
-
-
-
-type ElementChild = LeactElement|string|number|null|boolean
 
 class Fiber{
     public parent: Fiber | null = null
@@ -75,18 +74,18 @@ class Fiber{
     public sibling: Fiber | null = null
     public stateHook: StateHook
     public effectHook: EffectHook
-    public type: TagName | Function | null = null
+    public type: TagName | ((...args: any) => ElementChild) | null = null
     public alternate: Fiber | null = null
     public props: any = null
     public flags: Flags | null = null
     public key: string | number | null = null
     public elementType: Component = null
-    public deleteions: Fiber[] = []
+    public deletions: Fiber[] = []
     public ref?: any 
     public effects: EffectHook[] = []
     public previousProps: any = null
-    public hasUpdate: boolean = false
-    public childrenHaveUpdate: boolean = false
+    public hasUpdate = false
+    public childrenHaveUpdate = false
     constructor(){
         this.stateHook = {state: null, next: null}
         this.effectHook = {effect: null, pendingDeps: null, next: null, isLayout: null}
@@ -123,7 +122,7 @@ class Fiber{
         wip.childrenHaveUpdate = this.childrenHaveUpdate
     }
 
-    public createWorkinProgress(props: any): Fiber{
+    public createWorkInProgress(props: any): Fiber{
         const wip = this.alternate || new Fiber()
         this.copyFiber(wip, props)
         return wip
@@ -144,7 +143,7 @@ class Fiber{
     public static fromElement(element: LeactElement): Fiber{
         let fiber = null
         if(element.elementType === HostComponent){
-            fiber = new HostElementFiber()
+            fiber = new HostComponentFiber()
         }else if(element.elementType === HostText){
             fiber = new HostTextFiber()
         }else{
@@ -176,7 +175,7 @@ abstract class HostFiber extends Fiber{
             return this.container
         }
         const initDom = this.createDom()
-        if(this.ref && "current" in this.ref){
+        if(this.ref && 'current' in this.ref){
             this.ref.current = initDom
         }
         this.applyProperties(this.props, initDom)
@@ -193,21 +192,21 @@ abstract class HostFiber extends Fiber{
     
 }
 
-class HostElementFiber extends HostFiber{
+class HostComponentFiber extends HostFiber{
     
     private propNameToEventName(name: string): string{
         return name.toLocaleLowerCase().substring(2)
     }
     
     protected applyProperties(props: any, container: Element): void {
-        for(let [key, value] of Object.entries(props)){
-            if(key === "className"){
+        for(const [key, value] of Object.entries(props)){
+            if(key === 'className'){
                 if(value === null){
-                    container.removeAttribute("class")
+                    container.removeAttribute('class')
                 }else{
                     container.className = value.toString()
                 }
-            }else if(key !== "child" && typeof(value) === 'string'){
+            }else if(key !== 'child' && (typeof(value) === 'string' || value === null)){
                 if(value !== null){
                     container.setAttribute(key, value)
                 }else{
@@ -215,7 +214,7 @@ class HostElementFiber extends HostFiber{
                 }
             }else if(key === 'style'){
                 const style = (container as any).style
-                for(let [cssKey, cssValue] of Object.entries(value)){
+                for(const [cssKey, cssValue] of Object.entries(value)){
                     if(cssValue === null){
                         style.removeProperty(cssKey)
                     }else{
@@ -236,15 +235,16 @@ class HostElementFiber extends HostFiber{
         if(!this.patchProps){
             return
         }
-        const element = this.container as Element;
+        const element = this.container as Element
         this.applyProperties(this.patchProps, element)
         if(this.alternate === null){
             return
         }
-        for(let [key, value] of Object.entries(this.patchProps)){
-            if(typeof value === 'function' && key in this.alternate.props){
-                const oldCallback = this.alternate.props[key]
-                element.removeEventListener(this.propNameToEventName(key), oldCallback)
+        for(const [key, value] of Object.entries(this.alternate.props)){
+
+            if(typeof value === 'function'
+                && Object.prototype.hasOwnProperty.call(this.patchProps, key)){
+                element.removeEventListener(this.propNameToEventName(key), value as any)
             }
         }
         this.patchProps = null
@@ -258,8 +258,8 @@ class HostElementFiber extends HostFiber{
         this.container.insertBefore(fiber.getDom(), base.getDom())
     }
 
-    public createWorkinProgress(props: any): HostFiber {
-        const wip = this.alternate || new HostElementFiber()
+    public createWorkInProgress(props: any): HostFiber {
+        const wip = this.alternate || new HostComponentFiber()
         wip.container = this.container
         this.copyFiber(wip, props)
         return wip
@@ -267,7 +267,7 @@ class HostElementFiber extends HostFiber{
 
     public patchProps?: any
     public container: Element
-    public alternate: HostElementFiber
+    public alternate: HostComponentFiber
     constructor(){
         super()
     }
@@ -275,7 +275,7 @@ class HostElementFiber extends HostFiber{
 
 function createFragment(props: any, child: LeactElement | LeactElement[]): LeactElement{
     if(Array.isArray(child)){
-        child = flattern(child)
+        child = flatten(child)
     }
     return new LeactElement(FragmentComponent, null, props, child)
 }
@@ -297,7 +297,7 @@ class HostTextFiber extends HostFiber{
         }
         this.patchProps = null
     }
-    public createWorkinProgress(props: any): HostFiber {
+    public createWorkInProgress(props: any): HostFiber {
         const wip = this.alternate || new HostTextFiber()
         wip.container = this.container
         this.copyFiber(wip, props)
@@ -305,7 +305,7 @@ class HostTextFiber extends HostFiber{
     }
     public patchProps?: {value: string}
     public container: Text
-    public alternate: HostElementFiber
+    public alternate: HostComponentFiber
     constructor(){
         super()
     }
@@ -313,12 +313,12 @@ class HostTextFiber extends HostFiber{
 
 export {
     Fiber,
-    HostElementFiber as HostComponentFiber,
+    HostComponentFiber as HostComponentFiber,
     HostTextFiber,
     HostFiber,
     LeactElement,
     ElementChild, 
     createElement,
     createFragment,
-    Fragment
+    Fragment,
 }

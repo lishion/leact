@@ -1,13 +1,13 @@
 
 function initJSDOMEnv(){
-    const root = document.createElement("div")
-    root.id = "root"
-    document.body = document.createElement("body");
+    const root = document.createElement('div')
+    root.id = 'root'
+    document.body = document.createElement('body')
     document.body.appendChild(root)
 }
 
 function destoryJSDOMEnv(){
-    const root = document.getElementById("root")
+    const root = document.getElementById('root')
     document.body.removeChild(root)
 }
 
@@ -24,5 +24,5 @@ function testWithJSOMEnv(msg, func){
 export {
     initJSDOMEnv,
     withJSDOMEnv,
-    testWithJSOMEnv
+    testWithJSOMEnv,
 }
