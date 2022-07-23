@@ -152,6 +152,7 @@ function SnakeComponent(){
     const [noUse, setNoUse] = Leact.useState({})
     const [status, setStatus] = Leact.useState("live")
     Leact.useEffect(() => {
+        console.info("effect")
         document.addEventListener('keydown', (e) => {
             let direction = null
             switch(e.key){
@@ -176,7 +177,7 @@ function SnakeComponent(){
             }
             nodesRef.current = snake.allNodes()
             setNoUse({})
-        }, 300)
+        }, 100)
     }, [])
 
     return (

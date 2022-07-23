@@ -1,0 +1,54 @@
+// module.exports = {
+//     extends: ['eslint-config-airbnb-base', 'plugin:@typescript-eslint/recommended'],
+//     parser: '@typescript-eslint/parser',
+//     plugins: ['@typescript-eslint'],
+//     rules: {
+//       'import/extensions': 'off',
+//       'no-use-before-define': 'off',
+//       '@typescript-eslint/no-use-before-define': ['error', { ignoreTypeReferences: true }],
+//       'import/prefer-default-export': 'off',
+//     },
+//     settings: {
+//       'import/resolver': {
+//         node: {
+//           extensions: ['.js', '.ts'],
+//           moduleDirectory: ['node_modules', './src'],
+//         },
+//       },
+//     },
+//     parserOptions: {
+//       project: './tsconfig.json',
+//     },
+//   }
+{
+    "root": true,
+    "rules": {
+        "semi": [2, "never"],
+        "comma-dangle": ["error", {
+            "arrays": "always-multiline",
+            "objects": "always-multiline",
+            "imports": "always-multiline",
+            "exports": "always-multiline"
+        }],
+        "array-element-newline": [2, {
+            "minItems": 2
+        }],
+        "object-property-newline": [2, {
+            "minItems": 2
+        }],
+        "quotes": [2, "single"]
+    },
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": 2017
+    },
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ]
+}
