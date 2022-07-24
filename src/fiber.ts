@@ -86,6 +86,7 @@ class Fiber{
     public previousProps: any = null
     public hasUpdate = false
     public childrenHaveUpdate = false
+
     constructor(){
         this.stateHook = {state: null, next: null}
         this.effectHook = {effect: null, pendingDeps: null, next: null, isLayout: null}
@@ -199,20 +200,18 @@ class HostComponentFiber extends HostFiber{
     }
     
     protected applyProperties(props: any, container: Element): void {
-        for(const [key, value] of Object.entries(props)){
-            if(key === 'className'){
-                if(value === null){
-                    container.removeAttribute('class')
-                }else{
-                    container.className = value.toString()
-                }
-            }else if(key !== 'child' && (typeof(value) === 'string' || value === null)){
-                if(value !== null){
-                    container.setAttribute(key, value)
-                }else{
-                    container.removeAttribute(key)
-                }
-            }else if(key === 'style'){
+        for(const [attr, value] of Object.entries(props)){
+            if(attr === 'child'){
+                continue
+            }
+            const realAttr = attr === 'className' ? 'class': attr
+            if(value === null){
+                container.removeAttribute(realAttr)
+                continue
+            }
+            if(typeof(value) === 'string'){
+                container.setAttribute(realAttr, value)
+            }else if(realAttr === 'style'){
                 const style = (container as any).style
                 for(const [cssKey, cssValue] of Object.entries(value)){
                     if(cssValue === null){
@@ -222,7 +221,7 @@ class HostComponentFiber extends HostFiber{
                     }
                 }
             }else if(typeof(value) === 'function'){
-                container.addEventListener(this.propNameToEventName(key), value as EventListenerOrEventListenerObject)
+                container.addEventListener(this.propNameToEventName(attr), value as EventListenerOrEventListenerObject)
             }
         }
     }
@@ -241,7 +240,6 @@ class HostComponentFiber extends HostFiber{
             return
         }
         for(const [key, value] of Object.entries(this.alternate.props)){
-
             if(typeof value === 'function'
                 && Object.prototype.hasOwnProperty.call(this.patchProps, key)){
                 element.removeEventListener(this.propNameToEventName(key), value as any)

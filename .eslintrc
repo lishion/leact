@@ -9,7 +9,8 @@
             "exports": "always-multiline"
         }],
         "quotes": ["error", "single"],
-        "@typescript-eslint/no-explicit-any": ["off"]
+        "@typescript-eslint/no-explicit-any": ["off"],
+        "eqeqeq": "error"
     },
     "parserOptions": {
         "sourceType": "module",
